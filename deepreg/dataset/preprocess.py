@@ -318,12 +318,16 @@ def resize_inputs(
 
     if "moving_label" not in inputs:  # unlabeled
         return dict(moving_image=moving_image, fixed_image=fixed_image, indices=indices)
+    
     moving_label = inputs["moving_label"]
     fixed_label = inputs["fixed_label"]
+
+    print(moving_label.shape)
 
     moving_label = moving_resize_layer(moving_label)
     fixed_label = fixed_resize_layer(fixed_label)
 
+    print(moving_label.shape)
     return dict(
         moving_image=moving_image,
         fixed_image=fixed_image,

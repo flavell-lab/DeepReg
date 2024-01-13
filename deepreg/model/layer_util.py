@@ -208,7 +208,8 @@ def pyramid_combination(
         interpolation=interpolation
     )
     if interpolation == "nearest":
-        values_floor = tf.where(weight_floor[-1] > weight_ceil[-1], values_floor, 0)
+        values_floor = tf.where(weight_floor[-1] > weight_ceil[-1],
+                values_floor, 0.0)
     else:
         values_floor = values_floor * weight_floor[-1]
     values_ceil = pyramid_combination(
@@ -218,7 +219,7 @@ def pyramid_combination(
         interpolation=interpolation
     )
     if interpolation == "nearest":
-        values_ceil = tf.where(weight_floor[-1] > weight_ceil[-1], 0, values_ceil)
+        values_ceil = tf.where(weight_floor[-1] > weight_ceil[-1], 0.0, values_ceil)
     else:
         values_ceil = values_ceil * weight_ceil[-1]
     return values_floor + values_ceil
@@ -298,7 +299,7 @@ def resample(
     clip_value_max = tf.cast(vol_shape, dtype=clipped.dtype) - 1  # (n,)
     clipped_shape = [1] * (len(loc_shape) + 1) + [dim_vol, 1]
     clip_value_max = tf.reshape(clip_value_max, shape=clipped_shape)
-    clipped = tf.clip_by_value(clipped, clip_value_min=0, clip_value_max=clip_value_max)
+    clipped = tf.clip_by_value(clipped, clip_value_min=0.0, clip_value_max=clip_value_max)
 
     # loc_floor_ceil has n sublists
     # each one corresponds to the floor and ceil coordinates for d-th dimension
