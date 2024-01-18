@@ -367,7 +367,10 @@ class RegistrationModel(tf.keras.Model):
             name=f"metric/{name}_max",
             aggregation="max",
         )
-def save_data(moving_image, fixed_image, moving_label, fixed_label, pred_fixed_image, pred_fixed_label, save_idx):
+def save_data(loss, moving_image, fixed_image, moving_label, fixed_label, pred_fixed_image, pred_fixed_label):
+    if not tf.reduce_any(tf.math.is_nan(loss)):
+        return None
+    save_idx = np.random.randint(1000000)
     with h5py.File(os.path.join("/data1/prj_register/test_save_fit", f'train_{save_idx}.h5'), "w") as f:
         f["moving_image"]  = moving_image.numpy()
         f["fixed_image"] = fixed_image.numpy()
@@ -375,6 +378,7 @@ def save_data(moving_image, fixed_image, moving_label, fixed_label, pred_fixed_i
         f["fixed_label"] = fixed_label.numpy()
         f["pred_fixed_image"] = pred_fixed_image.numpy()
         f["pred_fixed_label"] = pred_fixed_label.numpy()
+    raise ValueError("NaN loss")
 
 @REGISTRY.register_model(name="ddf")
 class DDFModel(RegistrationModel):
@@ -459,12 +463,12 @@ class DDFModel(RegistrationModel):
         with tf.GradientTape() as tape:
             y_pred = self(x, training=True)
             loss = self.compute_loss(x, y, y_pred, sample_weight)
-        save_idx = np.random.randint(1000000)
 
-        tf.py_function(save_data, 
-                   [x['moving_image'], x['fixed_image'], x['moving_label'], x['fixed_label'], 
-                    y_pred['pred_fixed_image'], y_pred['pred_fixed_label'], save_idx], 
-                   Tout=[])
+
+        tf.py_function(save_data,
+               [loss, x['moving_image'], x['fixed_image'], x['moving_label'], x['fixed_label'],
+                y_pred['pred_fixed_image'], y_pred['pred_fixed_label']],
+               Tout=[])
 
         self._validate_target_and_loss(y, loss)
         # Run backwards pass.
